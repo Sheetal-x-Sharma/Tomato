@@ -11,8 +11,10 @@ import RiderOrderRequest from "../components/RiderOrderRequest";
 import RiderCurrentOrder from "../components/RiderCurrentOrder";
 import RiderOrderMap from "../components/RiderOrderMap";
 
+
 interface IRider {
   _id: string;
+  name: string;
   phoneNumber: string;
   aadharNumber: string;
   drivingLicenseNumber: string;
@@ -21,25 +23,32 @@ interface IRider {
   isAvailble: boolean;
 }
 
+
 const RiderDashboard = () => {
-  const { user } = useAppData();
+  const { user, location } = useAppData();
   const { socket } = useSocket();
+
 
   const [profile, setProfile] = useState<IRider | null>(null);
   const [loading, setLoading] = useState(true);
 
+
   const [toggling, setToggling] = useState(false);
+
 
   const [incomingOrders, setIncomingOrders] = useState<string[]>([]);
   const [currentOrder, setCurrentOrder] = useState<IOrder | null>(null);
 
+
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
 
   useEffect(() => {
     audioRef.current = new Audio(audio);
     audioRef.current.preload = "auto";
   }, []);
+
 
   const unlockAudio = async () => {
     try {
@@ -53,30 +62,37 @@ const RiderDashboard = () => {
     }
   };
 
+
   useEffect(() => {
     if (!socket) return;
+
 
     const onOrderAvailable = ({ orderId }: { orderId: string }) => {
       setIncomingOrders((prev) =>
         prev.includes(orderId) ? prev : [...prev, orderId]
       );
 
+
       if (audioUnlocked && audioRef.current) {
         audioRef.current.currentTime = 0;
         audioRef.current.play().catch(() => {});
       }
+
 
       setTimeout(() => {
         setIncomingOrders((prev) => prev.filter((id) => id !== orderId));
       }, 10000);
     };
 
+
     socket.on("order:available", onOrderAvailable);
+
 
     return () => {
       socket.off("order:available", onOrderAvailable);
     };
   }, [socket, audioUnlocked]);
+
 
   const fetchProfile = async () => {
     try {
@@ -86,6 +102,7 @@ const RiderDashboard = () => {
         },
       });
 
+
       setProfile(data || null);
     } catch (error) {
       setProfile(null);
@@ -94,10 +111,12 @@ const RiderDashboard = () => {
     }
   };
 
+
   useEffect(() => {
     if (user?.role === "rider") fetchProfile();
     else setLoading(false);
   }, [user]);
+
 
   const fetchCurrentOrder = async () => {
     try {
@@ -110,6 +129,7 @@ const RiderDashboard = () => {
         }
       );
 
+
       setCurrentOrder(data.order);
     } catch (error) {
       console.log(error);
@@ -117,9 +137,11 @@ const RiderDashboard = () => {
     }
   };
 
+
   useEffect(() => {
     fetchCurrentOrder();
   }, []);
+
 
   const toggleAvailiblity = async () => {
     if (!navigator.geolocation) {
@@ -127,7 +149,9 @@ const RiderDashboard = () => {
       return;
     }
 
+
     setToggling(true);
+
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
@@ -145,6 +169,7 @@ const RiderDashboard = () => {
           }
         );
 
+
         toast.success(
           profile?.isAvailble ? "You are offline" : "You are online"
         );
@@ -157,53 +182,104 @@ const RiderDashboard = () => {
     });
   };
 
+
+  const [name, setName] = useState(user?.name || "");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [aadharNumber, setaadharNumber] = useState("");
   const [drivingLicenseNumber, setDrivingLicenseNumber] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+
+  useEffect(() => {
+    if (user?.name && !name) {
+      setName(user.name);
+    }
+  }, [user]);
+
+
   const handleSubmit = async () => {
-    if (!navigator.geolocation) {
+    if (!name || !phoneNumber || !aadharNumber || !drivingLicenseNumber) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+
+    if (!image) {
+      toast.error("Please upload an image");
+      return;
+    }
+
+
+    if (!navigator.geolocation && !location) {
       toast.error("Location Access Required");
       return;
     }
 
+
     setSubmitting(true);
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const formData = new FormData();
 
+    try {
+      let lat = location?.latitude;
+      let lng = location?.longitude;
+
+
+      if (navigator.geolocation) {
+        try {
+          const pos = await new Promise<GeolocationPosition>(
+            (resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                timeout: 10000,
+                maximumAge: 60000,
+              });
+            }
+          );
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
+        } catch (geoErr) {
+          console.warn("Geolocation prompt/fetch failed, using context location if available", geoErr);
+        }
+      }
+
+
+      if (lat === undefined || lng === undefined) {
+        toast.error("Unable to get your location. Please allow location permissions in your browser.");
+        return;
+      }
+
+
+      const formData = new FormData();
+      formData.append("name", name);
       formData.append("phoneNumber", phoneNumber);
       formData.append("aadharNumber", aadharNumber);
       formData.append("drivingLicenseNumber", drivingLicenseNumber);
-      formData.append("latitude", pos.coords.latitude.toString());
-      formData.append("longitude", pos.coords.longitude.toString());
+      formData.append("latitude", lat.toString());
+      formData.append("longitude", lng.toString());
+      formData.append("file", image);
 
-      if (image) {
-        formData.append("file", image);
-      }
 
-      try {
-        const { data } = await axios.post(
-          `${riderService}/api/rider/new`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+      const { data } = await axios.post(
+        `${riderService}/api/rider/new`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-        toast.success(data.message);
-        fetchProfile();
-      } catch (error: any) {
-        toast.error(error.response.data.message);
-      } finally {
-        setSubmitting(false);
-      }
-    });
+
+      toast.success(data.message);
+      fetchProfile();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to create profile");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
 
   if (user?.role !== "rider") {
     return (
@@ -213,6 +289,7 @@ const RiderDashboard = () => {
     );
   }
 
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-gray-500">
@@ -221,11 +298,19 @@ const RiderDashboard = () => {
     );
   }
 
+
   if (!profile)
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-6">
         <div className="mx-auto max-w-lg rounded-xl bg-white p-6 shadow-sm space-y-5">
           <h1 className="text-xl font-semibold">Add Your Profile</h1>
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-lg border px-4 py-2 text-sm outline-none"
+          />
           <input
             type="number"
             placeholder="Aadhar number"
@@ -241,6 +326,7 @@ const RiderDashboard = () => {
             className="w-full rounded-lg border px-4 py-2 text-sm outline-none"
           />
 
+
           <input
             type="text"
             placeholder="driving Licence"
@@ -248,6 +334,7 @@ const RiderDashboard = () => {
             onChange={(e) => setDrivingLicenseNumber(e.target.value)}
             className="w-full rounded-lg border px-4 py-2 text-sm outline-none"
           />
+
 
           <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-4 text-sm text-gray-600 hover:bg-gray-50">
             <BiUpload className="h-5 w-5 text-red-500" />
@@ -259,6 +346,7 @@ const RiderDashboard = () => {
               onChange={(e) => setImage(e.target.files?.[0] || null)}
             />
           </label>
+
 
           <button
             className="w-full rounded-lg py-3 text-sm font-semibold text-white bg-[#e23744]"
@@ -284,15 +372,18 @@ const RiderDashboard = () => {
             {profile.phoneNumber}
           </p>
 
+
           <div className="flex justify-center gap-2">
             <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-600">
               {profile.isVerified ? "Verified" : "Pending"}
             </span>
 
+
             <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-600">
               {profile.isAvailble ? "Online" : "Offline"}
             </span>
           </div>
+
 
           <div>
             <p className="text-blue-400">
@@ -300,6 +391,7 @@ const RiderDashboard = () => {
               hotspot) before going online as a rider to receive orders.
             </p>
           </div>
+
 
           {profile.isVerified && !currentOrder && (
             <button
@@ -323,6 +415,7 @@ const RiderDashboard = () => {
         </div>
       </div>
 
+
       {!audioUnlocked && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -337,6 +430,7 @@ const RiderDashboard = () => {
             </div>
           </div>
 
+
           <button
             onClick={unlockAudio}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
@@ -345,6 +439,7 @@ const RiderDashboard = () => {
           </button>
         </div>
       )}
+
 
       {profile.isAvailble && incomingOrders.length > 0 && (
         <div className="mx-auto max-w-md px-4 space-y-3">
@@ -362,6 +457,7 @@ const RiderDashboard = () => {
         </div>
       )}
 
+
       {currentOrder && (
         <div className="mx-auto max-w-md px-4 space-y-4">
           <RiderCurrentOrder
@@ -375,4 +471,7 @@ const RiderDashboard = () => {
   );
 };
 
+
 export default RiderDashboard;
+
+
