@@ -53,7 +53,7 @@ export const addRiderProfile = TryCatch(
   } = req.body;
 
     if (
-      !name ||
+     // !name ||
       !phoneNumber ||
       !aadharNumber ||
       !drivingLicenseNumber ||
