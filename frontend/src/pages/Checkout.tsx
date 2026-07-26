@@ -118,58 +118,7 @@ const [showUpiModal, setShowUpiModal] = useState(false);
     }
   };
 
-  const payWithRazorpay = async () => {
-    try {
-      setLoadingRazorpay(true);
 
-      const order = await createOrder("razorpay");
-      if (!order) return;
-
-      const { orderId, amount } = order;
-
-      const { data } = await axios.post(`${utilsService}/api/payment/create`, {
-        orderId,
-      });
-
-      const { razorpayOrderId, key } = data;
-
-      const options = {
-        key,
-        amount: amount * 100,
-        currency: "INR",
-        name: "Tomato", //your business name
-        description: "Food Order Payment",
-        order_id: razorpayOrderId,
-
-        handler: async (response: any) => {
-          try {
-            await axios.post(`${utilsService}/api/payment/verify`, {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              orderId,
-            });
-
-            toast.success("Payment successfull 🎉");
-            navigate("/paymentsuccess/" + response.razorpay_payment_id);
-          } catch (error) {
-            toast.error("Payment verification failed");
-          }
-        },
-        theme: {
-          color: "#E23744",
-        },
-      };
-
-      const razorpay = new (window as any).Razorpay(options);
-      razorpay.open();
-    } catch (error) {
-      console.log(error);
-      toast.error("Payment Failed please refresh page");
-    } finally {
-      setLoadingRazorpay(false);
-    }
-  };
 
   const payWithUPI = async () => {
     try {
