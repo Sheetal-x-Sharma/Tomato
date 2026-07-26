@@ -25,30 +25,34 @@ const schema = new Schema<IRider>(
       required: true,
       unique: true,
     },
+
     picture: {
       type: String,
       required: true,
     },
+
     phoneNumber: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  name: { type: String, required: true },
-  aadharNumber: {
       type: String,
       required: true,
       trim: true,
     },
 
-    aadharNumber: {
+    name: {
       type: String,
       required: true,
     },
+
+    aadharNumber: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     drivingLicenseNumber: {
       type: String,
       required: true,
     },
+
     isVerified: {
       type: Boolean,
       default: false,
