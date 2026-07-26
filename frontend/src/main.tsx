@@ -7,7 +7,7 @@ import { AppProvider } from "./context/AppContext.tsx";
 import "leaflet/dist/leaflet.css";
 import { SocketProvider } from "./context/SocketContext.tsx";
 
-export const authService = "YOUR_AUTH_RENDER_URL";
+export const authService = "https://tomato-auth-j7zx.onrender.com";
 
 export const restaurantService = "https://tomato-restaurant-j4xd.onrender.com";
 
