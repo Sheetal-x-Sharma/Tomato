@@ -43,21 +43,23 @@ export const addRiderProfile = TryCatch(
       }
     );
 
-    const {
-      phoneNumber,
-      aadharNumber,
-      drivingLicenseNumber,
-      latitude,
-      longitude,
-    } = req.body;
+   const {
+    name,
+    phoneNumber,
+    aadharNumber,
+    drivingLicenseNumber,
+    latitude,
+    longitude,
+  } = req.body;
 
     if (
+      !name ||
       !phoneNumber ||
       !aadharNumber ||
       !drivingLicenseNumber ||
       latitude === undefined ||
       longitude === undefined
-    ) {
+    ){
       return res.status(400).json({
         message: "All fields are required",
       });
@@ -75,6 +77,7 @@ export const addRiderProfile = TryCatch(
 
     const riderProfile = await Rider.create({
       userId: user._id,
+      name,
       picture: uploadResult.url,
       phoneNumber,
       aadharNumber,
