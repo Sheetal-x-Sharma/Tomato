@@ -120,7 +120,10 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
   const platfromFee = 7;
   const totalAmount = subtotal + deliveryFee + platfromFee;
 
-  const expiresAt = paymentMethod === "cod" ? undefined : new Date(Date.now() + 15 * 60 * 1000);
+const expiresAt =
+  paymentMethod === "cod"
+    ? null
+    : new Date(Date.now() + 15 * 60 * 1000);
 
   const [longitude, latitude] = address.location.coordinates;
 
@@ -147,9 +150,9 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
     },
 
     paymentMethod,
-    paymentStatus: "pending",
-    status: "placed",
-    expiresAt,
+paymentStatus: "pending",
+status: "placed",
+...(expiresAt && { expiresAt }),
   });
 
   await Cart.deleteMany({ userId: user._id });
@@ -378,13 +381,19 @@ export const assignRiderToOrder = TryCatch(async (req, res) => {
     });
   }
 
-  const order = await Order.findById(orderId);
+ const order = await Order.findById(orderId);
 
-  if (order?.riderId !== null) {
-    return res.status(400).json({
-      message: "Order Already taken",
-    });
-  }
+if (!order) {
+  return res.status(404).json({
+    message: "Order not found",
+  });
+}
+
+if (order.riderId !== null) {
+  return res.status(400).json({
+    message: "Order Already taken",
+  });
+}
 
   const orderUpdated = await Order.findOneAndUpdate(
     { _id: orderId, riderId: null },
