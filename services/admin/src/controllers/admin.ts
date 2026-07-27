@@ -17,9 +17,17 @@ export const getPendingRestaurant = TryCatch(async (req, res) => {
 });
 
 export const getPendingRiders = TryCatch(async (req, res) => {
-  const riders = await (await getRiderCollection())
+
+  const collection = await getRiderCollection();
+
+  const total = await collection.countDocuments();
+
+  const riders = await collection
     .find({ isVerified: false })
     .toArray();
+
+  console.log("TOTAL RIDERS:", total);
+  console.log("PENDING RIDERS:", riders);
 
   res.json({
     count: riders.length,
