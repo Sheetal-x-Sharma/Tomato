@@ -3,77 +3,125 @@
 
 A **full-stack food delivery platform** built using a **microservices architecture** that enables customers to order food, restaurants to manage orders, and riders to deliver orders in real-time.
 
-Developed using **React**, **Node.js**, **Express.js**, **MongoDB**, **RabbitMQ**, and **Socket.IO** — featuring authentication, real-time tracking, order management, and independent backend services.
+Developed using **React**, **Node.js**, **Express.js**, **TypeScript**, **MongoDB**, **RabbitMQ**, and **Socket.IO** — featuring authentication, real-time order tracking, restaurant management, rider operations, and independently deployed backend services.
 
 ---
 
 ## 🚀 **Features**
 
 - 🔐 **Authentication System** (JWT + Google OAuth)
-- 👤 **Role-Based Access Control** (Customer, Restaurant, Rider)
-- 🍽️ **Restaurant Management** (Create restaurants, manage menus)
-- 🛒 **Food Ordering System** with complete order lifecycle
-- 🚴 **Rider Management** (Online/offline availability, delivery handling)
+- 👤 **Role-Based Access Control** (Customer, Restaurant, Rider, Admin)
+- 🍽️ **Restaurant Management** (Create restaurants, manage menus, process orders)
+- 🛒 **Food Ordering System** with complete order lifecycle management
+- 🚴 **Rider Management** (Online/offline availability, location tracking, delivery handling)
 - 📍 **Real-Time Order Tracking** using Socket.IO
-- 🔔 **Event Driven Communication** using RabbitMQ
-- 🖼️ **Image Upload Service** for restaurants and profiles
-- 💳 **Secure Payment Integration**
+- 🔔 **Event-Driven Communication** using RabbitMQ
+- 🖼️ **Image Upload Service** for restaurants and user profiles
+- 💳 **Secure Payment Integration** using Stripe
 - 📱 **Responsive UI** for seamless user experience
 
 ---
 
-## 🛠️ **Tech Stack**
+# 🛠️ **Tech Stack**
 
 | Layer | Technologies |
 |------------|-----------------------------------|
 | **Frontend** | React, TypeScript, Vite, Tailwind CSS, Axios |
 | **Backend** | Node.js, Express.js, TypeScript |
 | **Database** | MongoDB, Mongoose |
-| **Communication** | RabbitMQ, Socket.IO, REST APIs |
 | **Authentication** | JWT, Google OAuth |
-| **Deployment** | Vercel (Frontend) + Cloud Deployment (Backend Services) |
+| **Communication** | RabbitMQ, Socket.IO, REST APIs |
+| **Deployment** | Vercel (Frontend) + Render (Backend Microservices) |
 
 ---
 
-## 🏗️ **Architecture**
+# 🏗️ **Architecture**
 
-Tomato follows a **microservices architecture** where different services handle independent responsibilities.
+Tomato follows a **microservices architecture**, where each service handles a specific responsibility and communicates independently through APIs and message queues.
 
 ```
-                    Frontend
-                       |
-                       |
-        --------------------------------
-        |        |        |        |
-      Auth   Restaurant Rider  Realtime
-     Service  Service  Service  Service
+                         Frontend
+                            |
+                            |
+        ------------------------------------------------
+        |          |             |          |           |
+      Auth    Restaurant      Rider    Realtime    Admin
+    Service    Service       Service    Service    Service
 
-                       |
-                 MongoDB + RabbitMQ
+                            |
+                            |
+                    RabbitMQ Events
+
+                            |
+                         MongoDB
 ```
-
-### Services:
-
-- 🔐 **Auth Service**  
-  Handles authentication, authorization, and user management.
-
-- 🍽️ **Restaurant Service**  
-  Manages restaurants, menus, and order processing.
-
-- 🚴 **Rider Service**  
-  Handles rider profiles, availability, location, and delivery updates.
-
-- ⚡ **Realtime Service**  
-  Provides live order updates and communication.
-
-- 🛠️ **Utils Service**  
-  Handles common utilities like image uploads.
 
 ---
 
-## ⚙️ **Setup & Installation**
+## 🧩 **Backend Services**
 
-### 🧩 **1️⃣ Clone the Repository**
+### 🔐 Auth Service
+
+Handles:
+
+- User authentication
+- JWT token generation
+- Google OAuth login
+- Role-based authorization
+
+
+### 🍽️ Restaurant Service
+
+Handles:
+
+- Restaurant registration
+- Menu management
+- Food items
+- Order processing
+- Restaurant operations
+
+
+### 🚴 Rider Service
+
+Handles:
+
+- Rider profile management
+- Rider verification
+- Online/offline availability
+- Location tracking
+- Delivery management
+
+
+### ⚡ Realtime Service
+
+Handles:
+
+- WebSocket connections
+- Live order updates
+- Real-time communication between users
+
+
+### 🛠️ Utils Service
+
+Handles:
+
+- Image upload operations
+- Shared backend utilities
+
+
+### 👨‍💼 Admin Service
+
+Handles:
+
+- Administrative operations
+- Platform management
+
+
+---
+
+# ⚙️ **Setup & Installation**
+
+## 🧩 **1️⃣ Clone the Repository**
 
 ```bash
 git clone <repository-url>
@@ -83,9 +131,9 @@ cd tomato-code
 
 ---
 
-### 🧩 **2️⃣ Install Dependencies**
+## 🧩 **2️⃣ Install Dependencies**
 
-**Frontend**
+### Frontend
 
 ```bash
 cd frontend
@@ -93,7 +141,10 @@ cd frontend
 npm install
 ```
 
-**Backend Services**
+
+### Backend Services
+
+Install dependencies inside every service:
 
 ```bash
 cd services/<service-name>
@@ -103,9 +154,9 @@ npm install
 
 ---
 
-### 🧩 **3️⃣ Environment Variables**
+## 🧩 **3️⃣ Environment Variables**
 
-Create `.env` files inside frontend and every backend service.
+Create `.env` files inside frontend and each backend service.
 
 Example:
 
@@ -121,7 +172,9 @@ INTERNAL_SERVICE_KEY=<service_key>
 
 ---
 
-### 🧩 **4️⃣ Start RabbitMQ**
+## 🧩 **4️⃣ Start RabbitMQ**
+
+Run RabbitMQ using Docker:
 
 ```bash
 docker run -d \
@@ -136,7 +189,7 @@ rabbitmq:3-management
 
 ---
 
-### 🧩 **5️⃣ Run Application**
+## 🧩 **5️⃣ Run Application**
 
 Start backend services:
 
@@ -154,20 +207,37 @@ npm run dev
 
 ---
 
-## 🌍 **Live Demo**
+# 🌍 **Live Demo**
 
-🔗 **Frontend:**  
+## 🌐 Frontend
+
+🔗 **Customer Application**
+
 https://tomato-rouge-ten.vercel.app/
 
----
-
-## 📸 **Preview**
-
-_Coming soon: Screenshots of Customer App, Restaurant Dashboard, Rider Panel, and Order Tracking._
 
 ---
 
-## 🤝 **Contributing**
+## 🔗 Backend Services
+
+| Service | URL |
+|------------|--------------------------------|
+| 🔐 Auth Service | https://tomato-auth-j7zx.onrender.com |
+| 🍽️ Restaurant Service | https://tomato-restaurant-j4xd.onrender.com |
+| 🚴 Rider Service | https://tomato-rider-tzbj.onrender.com |
+| ⚡ Realtime Service | https://tomato-realtime-30cm.onrender.com |
+| 🛠️ Utils Service | https://tomato-utils-bkzt.onrender.com |
+| 👨‍💼 Admin Service | https://tomato-admin-lq7h.onrender.com |
+
+---
+
+# 📸 **Preview**
+
+_Coming soon: Screenshots of Customer Application, Restaurant Dashboard, Rider Panel, Admin Dashboard, and Real-Time Order Tracking._
+
+---
+
+# 🤝 **Contributing**
 
 Contributions are always welcome!
 
@@ -186,7 +256,7 @@ git checkout -b feature/new-feature
 
 ---
 
-## 🧑‍💻 **Developer**
+# 🧑‍💻 **Developer**
 
 - 👤 **Sheetal Sharma**
 - 📧 [sheetalsharmaoct2003@gmail.com](mailto:sheetalsharmaoct2003@gmail.com)
@@ -194,12 +264,12 @@ git checkout -b feature/new-feature
 
 ---
 
-### ⭐ Support
+## ⭐ Support
 
-If you like this project, please **⭐ Star the repository** — it helps others discover the project!
+If you like this project, please consider giving it a **⭐ Star** on GitHub — it helps others discover the project!
 
 ---
 
-### 🏷️ Keywords
+## 🏷️ Keywords
 
-`React` • `Node.js` • `Express.js` • `MongoDB` • `Microservices` • `RabbitMQ` • `Socket.IO` • `JWT` • `Food Delivery` • `Full Stack` • `Real-Time Application`
+`React` • `Node.js` • `Express.js` • `TypeScript` • `MongoDB` • `Microservices` • `RabbitMQ` • `Socket.IO` • `JWT` • `Google OAuth` • `Stripe` • `Food Delivery App` • `Full Stack Development` • `Real-Time Application`
