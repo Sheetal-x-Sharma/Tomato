@@ -12,9 +12,16 @@ export const connectDb = async (): Promise<Db> => {
   });
   await client.connect();
 
-  db = client.db(process.env.DB_NAME);
+ db = client.db(process.env.DB_NAME);
 
-  console.log("Admin service connected to mongodb");
+console.log("Admin service connected to mongodb");
+console.log("DATABASE:", db.databaseName);
+
+const collections = await db.listCollections().toArray();
+console.log(
+  "COLLECTIONS:",
+  collections.map((c) => c.name)
+);
 
   return db;
 };
